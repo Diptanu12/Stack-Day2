@@ -1,0 +1,224 @@
+Infix Evaluation And Conversions
+You are given an infix expression.
+
+You are required to evaluate it and print it's value. You are also required to convert it to postfix and prefix print both of them.
+
+Input Format
+The first line contains a string s, denoting the infix expression.
+
+Output Format
+In the first line of Output print, the answer is evaluated.
+
+In the second line, print the postfix expression.
+
+In the last line, print the prefix expression.
+
+Example 1
+Input
+
+((2+((6*4)/8))-3)
+Output
+
+2
+264*8/+3-
+-+2/*6483
+Explanation
+
+The evaluated expression is printed in the first line.
+
+The infix to postfix expression is printed in the second line.
+
+The infix-to-prefix expression is printed in the third line.
+
+Example 2
+Input
+
+((1+2)+((((3*4)/5)*6)/7))
+Output
+
+4
+12+34*5/6*7/+
+++12/*/*34567
+Explanation
+
+The evaluated expression is printed in the first line.
+
+The infix to postfix expression is printed in the second line.
+
+The infix-to-prefix expression is printed in the third line.
+
+Constraints
+Expression is a valid prefix expression
+
+The only operators used are +, -, *, /
+
+All operands are single-digit numbers.
+
+Topics
+Stacks
+
+
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String exp = br.readLine();
+        Solution ob = new Solution();
+        ob.evaluate(exp);
+    }
+}
+
+class Solution {
+    public void evaluate(String exp) {
+        // Evaluate the infix expression
+        int evaluatedValue = evaluateInfix(exp);
+        System.out.println(evaluatedValue);
+
+        // Convert infix to postfix
+        String postfix = infixToPostfix(exp);
+        System.out.println(postfix);
+
+        // Convert infix to prefix
+        String prefix = infixToPrefix(exp);
+        System.out.println(prefix);
+    }
+
+    private int evaluateInfix(String exp) {
+        Stack<Integer> values = new Stack<>();
+        Stack<Character> operators = new Stack<>();
+
+        for (int i = 0; i < exp.length(); i++) {
+            char ch = exp.charAt(i);
+
+            if (ch == ' ') {
+                continue;
+            }
+
+            if (ch >= '0' && ch <= '9') {
+                values.push(ch - '0');
+            } else if (ch == '(') {
+                operators.push(ch);
+            } else if (ch == ')') {
+                while (operators.peek() != '(') {
+                    values.push(applyOp(operators.pop(), values.pop(), values.pop()));
+                }
+                operators.pop();
+            } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+                while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(ch)) {
+                    values.push(applyOp(operators.pop(), values.pop(), values.pop()));
+                }
+                operators.push(ch);
+            }
+        }
+
+        while (!operators.isEmpty()) {
+            values.push(applyOp(operators.pop(), values.pop(), values.pop()));
+        }
+
+        return values.pop();
+    }
+
+    private int applyOp(char op, int b, int a) {
+        switch (op) {
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/': return a / b;
+        }
+        return 0;
+    }
+
+    private int precedence(char op) {
+        switch (op) {
+            case '+':
+            case '-':
+                return 1;
+            case '*':
+            case '/':
+                return 2;
+        }
+        return -1;
+    }
+
+    private String infixToPostfix(String exp) {
+        StringBuilder result = new StringBuilder();
+        Stack<Character> stack = new Stack<>();
+
+        for (int i = 0; i < exp.length(); i++) {
+            char ch = exp.charAt(i);
+
+            if (ch == ' ') {
+                continue;
+            }
+
+            if (ch >= '0' && ch <= '9') {
+                result.append(ch);
+            } else if (ch == '(') {
+                stack.push(ch);
+            } else if (ch == ')') {
+                while (!stack.isEmpty() && stack.peek() != '(') {
+                    result.append(stack.pop());
+                }
+                stack.pop();
+            } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+                while (!stack.isEmpty() && precedence(stack.peek()) >= precedence(ch)) {
+                    result.append(stack.pop());
+                }
+                stack.push(ch);
+            }
+        }
+
+        while (!stack.isEmpty()) {
+            result.append(stack.pop());
+        }
+
+        return result.toString();
+    }
+
+    private String infixToPrefix(String exp) {
+        StringBuilder result = new StringBuilder();
+        StringBuilder input = new StringBuilder(exp);
+        input.reverse();
+        Stack<Character> stack = new Stack<>();
+
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+
+            if (ch == ' ') {
+                continue;
+            }
+
+            if (ch == '(') {
+                ch = ')';
+            } else if (ch == ')') {
+                ch = '(';
+            }
+
+            if (ch >= '0' && ch <= '9') {
+                result.append(ch);
+            } else if (ch == '(') {
+                stack.push(ch);
+            } else if (ch == ')') {
+                while (!stack.isEmpty() && stack.peek() != '(') {
+                    result.append(stack.pop());
+                }
+                stack.pop();
+            } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+                while (!stack.isEmpty() && precedence(stack.peek()) > precedence(ch)) {
+                    result.append(stack.pop());
+                }
+                stack.push(ch);
+            }
+        }
+
+        while (!stack.isEmpty()) {
+            result.append(stack.pop());
+        }
+
+        return result.reverse().toString();
+    }
+}
